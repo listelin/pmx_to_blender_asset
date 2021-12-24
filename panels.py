@@ -4,7 +4,6 @@ from .operators import (
     AssetizePmx, PmxUpdateAssetThumbnail,
     PMXFolderlector, AssetFolderlector, AssetizePmxBatch
 )
-import bpy
 from bpy.types import Panel
 
 class PmxAssetizePanel(Panel):
@@ -15,14 +14,14 @@ class PmxAssetizePanel(Panel):
     bl_category = 'MMD'
     bl_context = ''
 
-    def draw(self, _context):
+    def draw(self, context):
 
-        preferences = bpy.context.preferences.addons[__package__].preferences
+        preferences = context.preferences.addons[__package__].preferences
 
         layout = self.layout
         row = layout.row(align=True)
 
-        props = bpy.context.scene.PmxAssetizeProp
+        props = context.scene.PmxAssetizeProp
 
         row.prop(props,'asset_folder', text='Asset folder')
         row.operator(AssetFolderlector.bl_idname,text='',icon='FILE_FOLDER')
