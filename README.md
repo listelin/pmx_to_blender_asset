@@ -39,7 +39,7 @@
 - blender3.xのアセットブラウザの仕様は流動的であり、作成したアセットは将来利用できなくなる可能性もあります。
 
 ## サンプル
-![sample](https://user-images.githubusercontent.com/44924233/147364629-6f2976c1-9c68-4abf-9bfb-890605afb6db.jpg)
+![sample](https://user-images.githubusercontent.com/44924233/147364858-256338a0-434a-4998-8c2d-5d2891d097ac.jpg)
 
 - Batch Assetizeの対象は全てのpmxファイルのため、キャラクターの複数のバリエーションや付属のアクセサリもアセット化されます。プレビューが適切な位置にならないものも多いので、その場合、open blend fileで、アセットファイルを開き、機能２により手動でプレビューの自動設定が必要です
 
