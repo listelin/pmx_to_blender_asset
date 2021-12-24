@@ -3,7 +3,7 @@
 ## 概要：　pmxファイルを自動的にBlenderのアセット化するアドオン
 前提：mmd_toolsがインストールされていること
 
-![スクリーンショット 2021-12-24 182308](https://user-images.githubusercontent.com/44924233/147339659-3cde028a-1c77-4c46-bfa5-bb31532e904f.jpg)
+![ui](https://user-images.githubusercontent.com/44924233/147359325-23c6837c-1df4-4513-94a3-9f30969826a8.jpg)
 
 ### 1. 単一pmxファイルのアセット化
 
