@@ -66,12 +66,10 @@
 ```
 2. タグを付けるべき（MMDなど）だが、bpy.ops.asset.tag_add()の使い方がわからない。
 1. カメラを適切なの位置に修正するようにしたい。以下の２種類は必要。
-    - キャラクターの場合は身長にあわせてバストアップ    
-    - 背景、小物、アクセサリの場合は全体像
+    - キャラクターの場合は身長にあわせてバストアップ: → Auto Angleで対応した。ただしZoomの自動調整もしたい
+    - 背景、小物、アクセサリの場合は全体像: 未対応
 
-      メッシュを選択してデータブロックのプレビュー機能を使うことも考えられる？workbenchで見栄えは悪いがレイアウトは全体が写っている。
-      （bpy.ops.ed.lib_id_generate_preview()はアセットでなくても使える）
-1. アセット利用時の３ステップ（インスタンス削除、可視性リセット、Update World）は煩雑なので、自動化出来ないか？
+1. アセット利用時の３ステップ（インスタンス削除、可視性リセット、Update World）は煩雑なので、自動化出来ないか？ (おそらく無理)
 1. アセットをFile-Openでプレビューした場合、Workbenchのプレビューになっている。
  Eeveeレンダーモードにし、インスタンスを非表示にして保存すればFile-Openのプレビューの見栄えは良くなる。
 （実態と重複しリジッドボディが表示状態になるのでインスタンスを非表示にする必要がある）
@@ -79,6 +77,18 @@
 1. エラーが発生した場合（元々のpmxがおかしくテクスチャ不足でパックできないなど）でも、継続したほうがよい。大量実行時、どこまで終わったのか確認して再開するのが面倒だから。
 その場合タグでテクスチャエラーのタグを付けるなどは必要。
   エラーの詳細確認も含めて、import時のログをtextで付属させても良いかもしれない（実装方法未調査）
-1. Uuunyaa assetのタグやプレビューを利用すると便利だと思うが未実装。
-1. Set Asset IMGは選択対象がアセットでない場合はインアクティブにすべきだがマークアセットされているかどうかの判定方法がわからない。
+1. Uuunyaa assetのタグやプレビューを利用すると便利だと思うが未実装。参考：https://github.com/UuuNyaa/blender_mmd_assets#get-latest-assetsjson
 1. 全般的にPython,Blenderとも初めて作成したのでコードのお作法がおかしい可能性がある
+1. アセットブラウザからblendアセットファイルを開くと以下のエラーが出る
+```
+Read blend: C:\bData\asset3.0\MMDtest\鬥呵廠.blend
+find_node_operation: Failed for (RIGIDBODY_REBUILD, '')
+add_relation(Rigid Body Rebuild -> Point Cache Reset) - Could not find op_from (OperationKey(type: TRANSFORM, component name: '', operation code: RIGIDBODY_REBUILD))
+add_relation(Rigid Body Rebuild -> Point Cache Reset) - Failed, but op_to (ComponentKey(OB014_蜑肴漕_0_0, POINT_CACHE)) was ok
+find_node_operation: Failed for (RIGIDBODY_REBUILD, '')
+add_relation(Rigid Body Rebuild -> Point Cache Reset) - Could not find op_from (OperationKey(type: TRANSFORM, component name: '', operation code: RIGIDBODY_REBUILD))
+add_relation(Rigid Body Rebuild -> Point Cache Reset) - Failed, but op_to (ComponentKey(OB01B_蜑肴漕_1_0, POINT_CACHE)) was ok
+```
+
+BUG:
+1. 根暗少女(c)をアセット化すると非常に長い時間がかかりアボートした。Dependancy Cycle detectedのせい？　ログにより解析要

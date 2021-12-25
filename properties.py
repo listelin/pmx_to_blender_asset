@@ -1,5 +1,6 @@
 import bpy
-from bpy.props import (StringProperty, FloatVectorProperty,BoolProperty)
+from math import pi
+from bpy.props import (FloatProperty, StringProperty, FloatVectorProperty,BoolProperty)
 
 class PmxAssetizeProp(bpy.types.PropertyGroup):
 
@@ -10,8 +11,10 @@ class PmxAssetizeProp(bpy.types.PropertyGroup):
     asset_folder : StringProperty(default="")
 
     camera_location: FloatVectorProperty(name="Thumbnail auto camera location", default = (0, -0.75, 1.3))
-    camera_rotation: FloatVectorProperty(name="Thumbnail auto camera rotation", default = (1.7, 0.0, 0.0))
+    camera_rotation: FloatVectorProperty(name="Thumbnail auto camera rotation", default = (pi/2, 0.0, 0.0))
     auto_camera: BoolProperty(default = True)
+    auto_angle: BoolProperty(default = True)
+    auto_angle_zoom_offset: FloatProperty(default=0.0)
 
     @staticmethod
     def register():

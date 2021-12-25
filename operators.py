@@ -93,6 +93,94 @@ class PmxUpdateAssetThumbnail(Operator):
     bl_label = 'PMX update Asset thumbnail'
     bl_options = {'REGISTER', 'UNDO'}
 
+    temp_cam_name = "temp_cam_for_thumbnail"
+
+    def temp_camera_add(self,context):
+        props = context.scene.PmxAssetizeProp
+
+        self.current_x = context.scene.render.resolution_x
+        self.current_y = context.scene.render.resolution_y
+        self.current_asp_x = context.scene.render.pixel_aspect_x
+        self.current_asp_y = context.scene.render.pixel_aspect_y
+        self.current_camera = context.scene.camera
+        self.current_orientation = context.scene.transform_orientation_slots[0].type
+
+        context.scene.render.resolution_y = 240
+        context.scene.render.resolution_x = 240
+        context.scene.render.pixel_aspect_x = 1
+        context.scene.render.pixel_aspect_y = 1
+
+        bpy.ops.object.camera_add(enter_editmode=False,
+            align='VIEW',
+            location=props.camera_location, # TODO: 適切なカメラアングル設定要。キャラクターは原点にいることが前提
+            rotation=props.camera_rotation,
+            scale=(1, 1, 1))
+        context.active_object.name = self.temp_cam_name
+        context.scene.camera = bpy.data.objects[context.active_object.name]
+
+
+    def temp_camera_delete(self,context):
+        bpy.data.objects[self.temp_cam_name].select_set(True)
+        bpy.ops.object.delete()
+        context.scene.render.resolution_x = self.current_x
+        context.scene.render.resolution_y = self.current_y
+        context.scene.camera = self.current_camera
+        context.scene.render.pixel_aspect_x = self.current_asp_x
+        context.scene.render.pixel_aspect_y = self.current_asp_y            
+        context.scene.transform_orientation_slots[0].type = self.current_orientation
+
+    def set_auto_angle(self, context, target_asset):
+    # カメラのy軸を首に合わせ、首にTrack Toする
+    # メッシュの大きさに合わせてY軸を後ろに動かす　- dimension_z * 0.5 + zoom_offset
+
+        props = context.scene.PmxAssetizeProp
+
+        zoom_offset = props.auto_angle_zoom_offset
+
+        for o in target_asset.instance_collection.all_objects:
+            if '_arm' in o.name:
+                mmd_arm_object = o
+                break
+
+        for o in target_asset.instance_collection.all_objects:
+            if '_mesh' in o.name:
+                mmd_mesh_object = o
+                break
+                
+        bpy.context.view_layer.objects.active = bpy.data.objects[self.temp_cam_name]
+        
+        bpy.ops.object.constraint_add(type='COPY_LOCATION')
+        bpy.context.object.constraints["Copy Location"].target = mmd_arm_object
+        bpy.context.object.constraints["Copy Location"].subtarget = '首'
+
+        bpy.context.object.constraints["Copy Location"].use_y = False
+        bpy.context.object.constraints["Copy Location"].use_x = False
+        
+        bpy.ops.object.constraint_add(type='TRACK_TO')
+        bpy.context.object.constraints["Track To"].target = mmd_arm_object
+        bpy.context.object.constraints["Track To"].subtarget = '首'
+        
+        d = bpy.context.object.driver_add("location", 1)
+        d.driver.type = 'SCRIPTED'
+        
+        var_z = d.driver.variables.new()
+        var_z.name = 'dimension_z'
+        var_z.type = 'SINGLE_PROP'
+        z_target = var_z.targets[0]
+        z_target.id = mmd_mesh_object
+        z_target.data_path = 'dimensions.z'
+        
+ #       var_scale = d.driver.variables.new()
+ #       var_scale.name = 'scale'
+ #       var_scale.type = 'TRANSFORMS'
+ #       scale_target = var_scale.targets[0]
+ #       scale_target.id = mmd_mesh_object
+ #       scale_target.transform_type = 'SCALE_AVG'
+ #       scale_target.transform_space = 'LOCAL_SPACE'
+
+        e = re.sub("_offset_", str(zoom_offset), "- dimension_z * 0.5 + _offset_")
+        d.driver.expression = e
+
 
     def execute(self, context):
 
@@ -105,39 +193,17 @@ class PmxUpdateAssetThumbnail(Operator):
         context.scene.render.image_settings.file_format = 'PNG'
 
         if props.auto_camera:
-            current_x = context.scene.render.resolution_x
-            current_y = context.scene.render.resolution_y
-            current_asp_x = context.scene.render.pixel_aspect_x
-            current_asp_y = context.scene.render.pixel_aspect_y
-            current_camera = context.scene.camera
-            current_orientation = context.scene.transform_orientation_slots[0].type
+            self.temp_camera_add(context)
 
-            context.scene.render.resolution_y = 240
-            context.scene.render.resolution_x = 240
-            context.scene.render.pixel_aspect_x = 1
-            context.scene.render.pixel_aspect_y = 1
-
-            bpy.ops.object.camera_add(enter_editmode=False,
-                                align='VIEW',
-                                location=props.camera_location, # TODO: 適切なカメラアングル設定要。キャラクターは原点にいることが前提
-                                rotation=props.camera_rotation,
-                                scale=(1, 1, 1))
-            context.active_object.name = 'temp_cam_for_thumbnail'
-            context.scene.camera = bpy.data.objects['temp_cam_for_thumbnail']
+            if props.auto_angle:
+                self.set_auto_angle(context, target_asset)
 
         thumbnail_file_path = bpy.app.tempdir + 'temp_thumb_' + target_asset.name + '.png'
         context.scene.render.filepath = thumbnail_file_path
         bpy.ops.render.render(write_still = True)
 
         if props.auto_camera:
-            bpy.data.objects['temp_cam_for_thumbnail'].select_set(True)
-            bpy.ops.object.delete()
-            context.scene.render.resolution_x = current_x
-            context.scene.render.resolution_y = current_y
-            context.scene.camera = current_camera
-            context.scene.render.pixel_aspect_x = current_asp_x
-            context.scene.render.pixel_aspect_y = current_asp_y            
-            context.scene.transform_orientation_slots[0].type = current_orientation
+            self.temp_camera_delete(context)
 
         # restore setting
         context.scene.render.image_settings.file_format = current_file_format
@@ -157,9 +223,13 @@ class PmxUpdateAssetThumbnail(Operator):
 
     @classmethod
     def poll(cls,context):
-        return True
+        if context.active_object:
+            if context.active_object.instance_collection:
+                return True
+    
+        return False
 
-class AssetizePmx(bpy.types.Operator, ImportHelper):
+class AssetizePmx(Operator, ImportHelper):
     bl_idname = "pmx_assetize.pmx_assetize"
     bl_label = "pmx assetize"
 
@@ -181,7 +251,7 @@ class AssetizePmx(bpy.types.Operator, ImportHelper):
         
         return True
 
-class AssetFolderlector(bpy.types.Operator, ImportHelper):
+class AssetFolderlector(Operator, ImportHelper):
     bl_idname = "pmx_assetize.asset_folder_selector"
     bl_label = "pmx folder"
 
@@ -190,7 +260,7 @@ class AssetFolderlector(bpy.types.Operator, ImportHelper):
         context.scene.PmxAssetizeProp.asset_folder = fdir
         return{'FINISHED'}
 
-class PMXFolderlector(bpy.types.Operator, ImportHelper):
+class PMXFolderlector(Operator, ImportHelper):
     bl_idname = "pmx_assetize.pmx_folder_selector"
     bl_label = "pmx folder"
 
@@ -200,7 +270,7 @@ class PMXFolderlector(bpy.types.Operator, ImportHelper):
 
         return{'FINISHED'}
 
-class AssetizePmxBatch(bpy.types.Operator):
+class AssetizePmxBatch(Operator):
     bl_idname = "pmx_assetize.pmx_assetize_batch"
     bl_label = "pmx assetize batch"
 
