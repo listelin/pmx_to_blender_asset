@@ -16,7 +16,7 @@ bl_info = {
     "author" : "",
     "description" : "PMXファイルをblenderのassetに変換する",
     "blender" : (3, 0, 0),
-    "version" : (0, 1, 0),
+    "version" : (0, 1, 1),
     "location" : "View 3D > Sidebar > MMD > PMX assetize",
     "warning" : "",
     "category" : ""

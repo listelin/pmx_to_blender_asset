@@ -5,8 +5,10 @@ from bpy.props import (FloatProperty, StringProperty, FloatVectorProperty,BoolPr
 class PmxAssetizeProp(bpy.types.PropertyGroup):
 
     source_pmx_folder : StringProperty(default="")
+    preserve_folder_structure: BoolProperty(default = False)
+
     source_pmx : StringProperty(default="")
-    auto_asemble: BoolProperty(default = True)
+    auto_asemble: BoolProperty(default = False)
     auto_smooth: BoolProperty(default = False)
     asset_folder : StringProperty(default="")
 
@@ -15,6 +17,8 @@ class PmxAssetizeProp(bpy.types.PropertyGroup):
     auto_camera: BoolProperty(default = True)
     auto_angle: BoolProperty(default = True)
     auto_angle_zoom_offset: FloatProperty(default=0.0)
+    ignore_file_pack_error: BoolProperty(default = True)
+
 
     @staticmethod
     def register():

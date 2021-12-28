@@ -29,12 +29,21 @@ class PmxAssetizePanel(Panel):
 
         row.prop(props,'auto_asemble', text='Assemble')
         row.prop(props,'auto_smooth', text='Auto Smooth Mesh')
+        row.prop(props,'ignore_file_pack_error', text='ignore file pack error')
+
         row = layout.row()
         row.operator(AssetizePmx.bl_idname,text='single PMX Assetize',icon='FILE_FOLDER')
         row = layout.row()
 
         row.prop(props,'source_pmx_folder', text='PMX folder')
         row.operator(PMXFolderlector.bl_idname,text='',icon='FILE_FOLDER')
+        preserve_folder_structure = layout.row(align=True)
+        preserve_folder_structure.prop(props,'preserve_folder_structure', text='Preserve folder structure')
+
+        if context.scene.PmxAssetizeProp.source_pmx_folder == '':
+            preserve_folder_structure.enabled = False
+        else:
+            preserve_folder_structure.enabled = True
 
         row = layout.row(align=True)
         row.operator(AssetizePmxBatch.bl_idname,text='Batch Assetize')
